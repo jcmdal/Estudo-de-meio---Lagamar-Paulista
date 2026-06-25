@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Impactos Ambientais e Biomas Regionais | Estudo de Meio Cananéia</title>
+<meta name="description" content="Pesquisa científica de campo do 7º ano: telemetria com BBC micro:bit comparando Valo Grande (impactado) e Ilha do Cardoso (preservado)." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,900;1,600&family=Lora:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    /* REGRA STRICT 60-30-10 */
+    --bg-base: #0a0d0c;       /* 60% - Fundo Orgânico */
+    --bg-surface: #121715;    /* Variação de superfície */
+    --text-base: #e4e8e6;     /* 30% - Legibilidade */
+    --text-muted: #8a9490;    /* Tom secundário */
+    --accent: #00e699;        /* 10% - Destaque Bio-Telemétrico */
+    --accent-dim: rgba(0, 230, 153, 0.15);
+    --alert: #ff4d4d;         /* Semáforo de risco */
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  
+  body {
+    background: var(--bg-base); 
+    color: var(--text-base); 
+    font-family: 'Lora', serif;
+    line-height: 1.75; 
+    overflow-x: hidden;
+    background-image: radial-gradient(circle at 10% 15%, rgba(0, 230, 153, 0.04), transparent 45%),
+                     radial-gradient(circle at 80% 70%, rgba(0, 230, 153, 0.03), transparent 50%);
+  }
+
+  h1, h2, h3 { font-family: 'Playfair Display', serif; line-height: 1.2; font-weight: 700; }
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+  .container { max-width: 1300px; margin: 0 auto; padding: 0 32px; }
+  a { color: inherit; text-decoration: none; }
+
+  /* NAVBAR */
+  nav { 
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(10, 13, 12, 0.75); 
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(228, 232, 230, 0.08);
+  }
+  nav .container { display: flex; align-items: center; justify-content: space-between; height: 72px; }
+  .brand { font-family: 'Playfair Display', serif; font-weight: 900; font-size: 1.35rem; color: var(--text-base); letter-spacing: -0.5px; }
+  .brand span { color: var(--accent); }
+  .nav-links { display: flex; gap: 8px; }
+  .nav-links a { 
+    font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px;
+    padding: 8px 16px; border-radius: 6px; color: var(--text-muted); transition: all 0.3s ease; 
+  }
+  .nav-links a:hover, .nav-links a.active { color: var(--text-base); background: rgba(255, 255, 255, 0.05); }
+  .menu-btn { display: none; background: none; border: 1px solid var(--text-muted); color: var(--text-base); border-radius: 6px; padding: 6px 12px; cursor: pointer; }
+
+  /* HERO */
+  header.hero { position: relative; min-height: 100vh; display: flex; align-items: center; justify-content: center; text-align: center; overflow: hidden; }
+  .hero-waves { position: absolute; inset: 0; z-index: 0; opacity: 0.25; }
+  .hero-waves svg { width: 100%; height: 100%; }
+  .hero-content { position: relative; z-index: 2; padding: 140px 24px 80px; max-width: 900px; }
+  .eyebrow { font-family: 'IBM Plex Mono', monospace; letter-spacing: 4px; text-transform: uppercase; font-size: 0.8rem; color: var(--accent); margin-bottom: 24px; }
+  .hero h1 { font-size: clamp(2.5rem, 6vw, 4.8rem); font-weight: 900; color: var(--text-base); letter-spacing: -1px; }
+  .hero h1 em { font-style: italic; font-weight: 400; color: var(--text-base); opacity: 0.9; }
+  .hero p.sub { margin: 28px auto 40px; max-width: 640px; font-size: 1.2rem; color: var(--text-muted); font-weight: 400; }
+  .meta-row { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+  .meta-pill { font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; background: var(--bg-surface); border: 1px solid rgba(228, 232, 230, 0.1); padding: 10px 20px; border-radius: 30px; color: var(--text-base); }
+  .scroll-cue { margin-top: 56px; font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; }
+
+  /* SECTIONS */
+  section { padding: 120px 0; position: relative; z-index: 2; }
+  .section-tag { font-family: 'IBM Plex Mono', monospace; color: var(--accent); letter-spacing: 3px; text-transform: uppercase; font-size: 0.75rem; margin-bottom: 16px; }
+  .section-title { font-size: clamp(2rem, 4vw, 3.2rem); font-weight: 700; color: var(--text-base); margin-bottom: 24px; letter-spacing: -0.5px; }
+  .section-title b { color: var(--text-base); font-weight: 700; text-shadow: 0 0 20px rgba(0,230,153,0.2); }
+  .lead { font-size: 1.2rem; color: var(--text-muted); max-width: 720px; line-height: 1.8; }
+
+  /* OBJETIVO */
+  .obj-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 64px; align-items: center; margin-top: 56px; }
+  .obj-text p { margin-bottom: 24px; font-size: 1.1rem; }
+  .obj-text .hl { color: var(--accent); font-weight: 500; }
+  
+  .photo-frame { 
+    position: relative; border-radius: 12px; overflow: hidden; 
+    border: 1px solid rgba(228, 232, 230, 0.1); 
+    box-shadow: 0 30px 60px rgba(0,0,0,0.5); background: var(--bg-surface);
+  }
+  .photo-frame img, .photo-frame video { width: 100%; display: block; aspect-ratio: 4/3; object-fit: cover; transition: transform 0.5s ease; }
+  .photo-frame:hover img { transform: scale(1.04); }
+
+  /* TIMELINE */
+  .day-head { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin: 80px 0 16px; }
+  .day-badge { font-family: 'IBM Plex Mono', monospace; background: var(--accent-dim); border: 1px solid var(--accent); color: var(--accent); padding: 6px 14px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; letter-spacing: 1px; }
+  .day-head h3 { font-size: 2rem; color: var(--text-base); }
+  .day-sub { color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; font-size: 0.85rem; margin-bottom: 32px; text-transform: uppercase; letter-spacing: 1px; }
+
+  .video-frame { width: 100%; border-radius: 12px; overflow: hidden; border: 1px solid rgba(228, 232, 230, 0.1); margin: 24px 0 48px; box-shadow: 0 30px 60px rgba(0,0,0,0.6); }
+  .video-frame video { width: 100%; display: block; aspect-ratio: 16/7; object-fit: cover; background: #000; }
+
+  /* CARDS */
+  .cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px; }
+  .loc-card { 
+    position: relative; border-radius: 16px; overflow: hidden; min-height: 440px; display: flex; flex-direction: column; justify-content: flex-end;
+    border: 1px solid rgba(228, 232, 230, 0.08); background: var(--bg-surface); box-shadow: 0 20px 40px rgba(0,0,0,0.4); transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
+  }
+  .loc-card:hover { transform: translateY(-8px); border-color: rgba(0, 230, 153, 0.3); box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6); }
+  .loc-card .media { position: absolute; inset: 0; z-index: 1; }
+  .loc-card .media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .loc-card .grad { position: absolute; inset: 0; z-index: 2; background: linear-gradient(to top, rgba(10,13,12,0.98) 0%, rgba(10,13,12,0.4) 60%, transparent 100%); }
+  .loc-card .body { position: relative; z-index: 3; padding: 32px; }
+  
+  .loc-card.alert { border-color: var(--alert); }
+  .badge-alert { 
+    position: absolute; top: 20px; left: 20px; z-index: 4; background: var(--alert); color: #fff; font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem; font-weight: 600; letter-spacing: 1px; padding: 6px 14px; border-radius: 4px; text-transform: uppercase; 
+  }
+  
+  .loc-card h4 { font-family: 'Playfair Display', serif; font-size: 1.8rem; color: var(--text-base); margin-bottom: 16px; }
+  .media-overlay { 
+    position: absolute; bottom: 0; left: 0; right: 0; z-index: 5; background: rgba(10, 13, 12, 0.85); backdrop-filter: blur(10px);
+    padding: 16px 24px; font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; color: var(--text-base); border-top: 1px solid rgba(228, 232, 230, 0.1); 
+  }
+  
+  .media-placeholder { 
+    position: absolute; inset: 0; z-index: 4; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+    text-align: center; cursor: pointer; padding: 32px; background: var(--bg-surface); transition: background 0.3s; 
+  }
+  .media-placeholder:hover { background: rgba(255, 255, 255, 0.02); }
+  .media-placeholder .ph-icon { font-size: 2rem; color: var(--accent); }
+  .media-placeholder .ph-name { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--text-base); }
+  .media-placeholder .ph-cta { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted); border: 1px dashed rgba(228, 232, 230, 0.2); padding: 6px 14px; border-radius: 4px; }
+
+  /* TELEMETRIA PANELS */
+  .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 40px 0 32px; border-bottom: 1px solid rgba(228, 232, 230, 0.1); padding-bottom: 16px; }
+  .tab { 
+    font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; letter-spacing: 0.5px; cursor: pointer; background: transparent;
+    border: 1px solid rgba(228, 232, 230, 0.15); color: var(--text-muted); padding: 12px 20px; border-radius: 6px; transition: all 0.3s;
+  }
+  .tab:hover { color: var(--text-base); border-color: rgba(228, 232, 230, 0.3); }
+  .tab.active { background: var(--accent); color: var(--bg-base); border-color: var(--accent); font-weight: 600; }
+  
+  .panel { display: none; }
+  .panel.active { display: block; }
+  
+  .chart-card { background: var(--bg-surface); border: 1px solid rgba(228, 232, 230, 0.06); border-radius: 12px; padding: 32px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+  .chart-box { position: relative; height: 460px; }
+  .panel-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px; }
+  
+  .bars { display: flex; flex-direction: column; gap: 20px; }
+  .bar-row .bar-label { display: flex; justify-content: space-between; font-family: 'IBM Plex Mono', monospace; font-size: 0.85rem; margin-bottom: 8px; color: var(--text-muted); }
+  .bar-track { height: 12px; background: rgba(255, 255, 255, 0.04); border-radius: 6px; overflow: hidden; }
+  .bar-fill { height: 100%; width: 0; border-radius: 6px; transition: width 1.5s cubic-bezier(0.16, 1, 0.3, 1); }
+
+  /* TABELA */
+  .table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid rgba(228, 232, 230, 0.08); background: var(--bg-surface); }
+  table { width: 100%; border-collapse: collapse; min-width: 750px; font-family: 'IBM Plex Mono', monospace; font-size: 0.85rem; }
+  th, td { padding: 18px 24px; text-align: left; border-bottom: 1px solid rgba(228, 232, 230, 0.05); }
+  th { background: rgba(255, 255, 255, 0.02); color: var(--accent); text-transform: uppercase; letter-spacing: 1px; font-size: 0.75rem; font-weight: 600; }
+  tbody tr:hover { background: rgba(255, 255, 255, 0.01); }
+  
+  .pill { display: inline-block; padding: 4px 12px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+  .pill.g { background: rgba(0, 230, 153, 0.1); color: var(--accent); border: 1px solid rgba(0, 230, 153, 0.3); }
+  .pill.y { background: rgba(255, 170, 0, 0.1); color: #ffa000; border: 1px solid rgba(255, 170, 0, 0.3); }
+  .pill.r { background: rgba(255, 77, 77, 0.1); color: var(--alert); border: 1px solid rgba(255, 77, 77, 0.3); }
+
+  /* AGRADECIMENTOS */
+  #agradecimentos { background: var(--bg-surface); padding: 140px 0; border-top: 1px solid rgba(228, 232, 230, 0.05); }
+  .obrigado-titulo { font-size: clamp(2.2rem, 5vw, 3.8rem); font-weight: 900; color: var(--text-base); margin-bottom: 16px; letter-spacing: -1px; }
+  .obrigado-sub { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.4rem; color: var(--text-muted); margin-bottom: 48px; }
+  .obrigado-texto { max-width: 800px; font-size: 1.15rem; color: rgba(228, 232, 230, 0.8); margin-bottom: 64px; }
+  .obrigado-texto p { margin-bottom: 24px; }
+  .obrigado-texto strong { color: var(--text-base); font-weight: 600; }
+ 
+  /* GRADE FOTOS */
+  .fotos-grade { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .fotos-grade .f-item { 
+    position: relative; border-radius: 8px; overflow: hidden; aspect-ratio: 1/1; 
+    background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(228, 232, 230, 0.08); 
+    cursor: zoom-in; transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
+  }
+  .fotos-grade .f-item:hover { transform: scale(1.03); z-index: 2; border-color: var(--accent); }
+  .fotos-grade .f-item.destaque { grid-column: span 2; grid-row: span 2; aspect-ratio: auto; }
+  .fotos-grade .f-item img, .fotos-grade .f-item video { width: 100%; height: 100%; object-fit: cover; display: block; }
+ 
+  .obrigado-assinatura { text-align: center; font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.4rem; color: var(--accent); margin-top: 64px; padding-top: 48px; border-top: 1px solid rgba(228, 232, 230, 0.08); letter-spacing: 0.5px; }
+  .obrigado-assinatura span { display: block; font-family: 'IBM Plex Mono', monospace; font-style: normal; font-size: 0.75rem; letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted); margin-top: 12px; }
+ 
+  /* LIGHTBOXES */
+  #lb-obrigado { position: fixed; inset: 0; z-index: 500; background: rgba(10, 13, 12, 0.98); display: none; align-items: center; justify-content: center; padding: 32px; }
+  #lb-obrigado.aberto { display: flex; }
+  #lb-obrigado img { max-width: 90vw; max-height: 85vh; border-radius: 8px; object-fit: contain; box-shadow: 0 40px 100px rgba(0,0,0,0.7); }
+  .lb-fechar { position: absolute; top: 32px; right: 32px; background: none; border: none; color: var(--text-base); font-size: 2rem; cursor: pointer; opacity: 0.7; transition: opacity 0.2s; }
+  .lb-fechar:hover { opacity: 1; }
+  .lb-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.03); border: 1px solid rgba(228, 232, 230, 0.1); color: var(--text-base); font-size: 1.5rem; cursor: pointer; border-radius: 50%; width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
+  .lb-nav:hover { background: rgba(255,255,255,0.08); border-color: var(--accent); color: var(--accent); }
+  .lb-prev { left: 32px; }
+  .lb-next { right: 32px; }
+  .lb-contador { position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%); font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; color: var(--text-muted); letter-spacing: 2px; }
+
+  /* CONCLUSÃO */
+  .conclusion { background: linear-gradient(135deg, #111a16 0%, var(--bg-base) 100%); border: 1px solid rgba(0, 230, 153, 0.15); border-radius: 16px; padding: 64px; box-shadow: 0 40px 80px rgba(0,0,0,0.5); position: relative; overflow: hidden; }
+  .conclusion h2 { font-size: clamp(2rem, 3.5vw, 2.8rem); color: var(--text-base); margin-bottom: 24px; letter-spacing: -0.5px; }
+  .conclusion p { font-size: 1.15rem; color: rgba(228, 232, 230, 0.9); margin-bottom: 20px; }
+  .conclusion .crit { color: var(--alert); font-weight: 600; border-bottom: 1px dashed rgba(255,77,77,0.3); }
+  .conclusion .good { color: var(--accent); font-weight: 600; border-bottom: 1px dashed rgba(0,230,153,0.3); }
+
+  /* FOOTER */
+  footer { padding: 64px 0; text-align: center; color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; border-top: 1px solid rgba(228, 232, 230, 0.08); background: var(--bg-base); }
+  footer p { margin-bottom: 12px; }
+  footer strong { color: var(--text-base); }
+
+  /* AUDIO DOCK */
+  #player-audio { position: fixed; bottom: 32px; right: 32px; z-index: 300; display: flex; align-items: center; gap: 14px; background: rgba(18, 23, 21, 0.85); backdrop-filter: blur(16px); border: 1px solid rgba(228, 232, 230, 0.08); border-radius: 40px; padding: 12px 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+  #btn-audio { background: none; border: none; cursor: pointer; font-size: 1.1rem; color: var(--accent); transition: transform 0.2s; }
+  #btn-audio:hover { transform: scale(1.1); }
+
+  .lightbox { position: fixed; inset: 0; z-index: 400; background: rgba(10,13,12,0.96); display: none; align-items: center; justify-content: center; padding: 32px; }
+  .lightbox.open { display: flex; }
+  .lightbox img { max-width: 90vw; max-height: 85vh; border-radius: 6px; box-shadow: 0 40px 80px rgba(0,0,0,0.6); }
+  .lightbox .close { position: absolute; top: 32px; right: 32px; font-size: 2rem; color: var(--text-base); background: none; border: none; cursor: pointer; }
+
+  @media(max-width: 960px){
+    .nav-links { display: none; position: absolute; top: 72px; left: 0; right: 0; flex-direction: column; background: var(--bg-base); padding: 24px; gap: 8px; border-bottom: 1px solid rgba(228, 232, 230, 0.1); }
+    .nav-links.show { display: flex; }
+    .menu-btn { display: block; }
+    .obj-grid, .cards, .panel-grid { grid-template-columns: 1fr; gap: 40px; }
+    .fotos-grade { grid-template-columns: repeat(2, 1fr); }
+    .fotos-grade .f-item.destaque { grid-column: span 2; aspect-ratio: 16/10; }
+    .conclusion { padding: 40px 24px; }
+    section { padding: 80px 0; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="container">
+    <div class="brand">Estudo de Meio<span>.</span>Lagamar Paulista</div>
+    <button class="menu-btn" onclick="document.getElementById('navlinks').classList.toggle('show')">☰</button>
+    <div class="nav-links" id="navlinks">
+      <a href="#objetivo" class="active">Objetivo</a>
+      <a href="#estacoes">Estações</a>
+      <a href="#telemetria">Telemetria</a>
+      <a href="#dados">Dados</a>
+      <a href="#conclusao">Conclusão</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="hero-waves">
+    <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+      <rect width="1440" height="900" fill="#0a0d0c"/>
+      <path fill="#121715" opacity="0.4" d="M0,620 C240,560 480,680 720,620 C960,560 1200,680 1440,620 L1440,900 L0,900 Z"/>
+      <path fill="#00e699" opacity="0.08" d="M0,700 C240,650 480,760 720,700 C960,650 1200,760 1440,700 L1440,900 L0,900 Z"/>
+    </svg>
+  </div>
+  <div class="hero-content">
+    <div class="eyebrow">Estudo de Meio · 7º Ano · Elvira Brandão</div>
+    <h1>Impactos Ambientais e <em>Biomas Regionais</em></h1>
+    <p class="sub">Telemetria avançada com BBC micro:bit analisando os contrastes ecológicos entre o ecossistema degradado do Valo Grande e as reservas intocadas da Ilha do Cardoso.</p>
+    <div class="meta-row">
+      <span class="meta-pill">📅 Maio · 2026</span>
+      <span class="meta-pill">🧪 37 Amostras telemétricas</span>
+      <span class="meta-pill">🔊 Análise Multissensorial</span>
+    </div>
+    <div class="scroll-cue">Explore os Indicadores</div>
+  </div>
+</header>
+
+<section id="objetivo">
+  <div class="container">
+    <div class="section-tag">01 · Proposta Científica</div>
+    <h2 class="section-title">Coletar. Comparar. <b>Preservar.</b></h2>
+    <div class="obj-grid">
+      <div class="obj-text">
+        <p>Durante o estudo de meio em Cananéia, a turma do 7º ano utilizou microcomputadores <span class="hl">BBC micro:bit</span> equipados com sensores de precisão para capturar dados telemétricos de <span class="hl">som (dB)</span>, <span class="hl">luminosidade</span> e <span class="hl">temperatura</span> de forma empírica.</p>
+        <p>O objetivo central foi traçar um diagnóstico comparativo entre a área criticamente impactada do <span class="hl">Valo Grande</span> — um canal artificial histórico — e biomas preservados da <span class="hl">Ilha do Cardoso</span>, da Restinga e do ecossistema sustentável da Reserva Extrativista do Mandira.</p>
+        <p>Essas métricas empíricas dão visibilidade quantitativa ao nível real de modificação antropogênica nos biomas da Mata Atlântica e sistemas estuarinos.</p>
+      </div>
+      <div>
+        <div class="photo-frame">
+          <img src="Turma Completa.png" alt="Turma Completa Cananéia 2026" onerror="this.parentNode.style.minHeight='320px';this.style.display='none';" />
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="estacoes">
+  <div class="container">
+    <div class="section-tag">02 · Unidades de Investigação</div>
+    <h2 class="section-title">Estações ecológicas de <b>análise</b></h2>
+    <p class="lead">Uma expedição dividida em três fases complementares estruturadas ao longo do complexo estuarino-lagunar.</p>
+
+    <div class="day-head"><span class="day-badge">Fase 1</span><h3>Iguape & Valo Grande</h3></div>
+    <p class="day-sub">// Malha urbana e estuário impactado por dragagem artificial</p>
+    <div class="video-frame">
+      <video controls muted playsinline src="drone1.mp4"></video>
+    </div>
+    <div class="cards" id="cards-d1"></div>
+
+    <div class="day-head"><span class="day-badge">Fase 2</span><h3>Ilha do Cardoso</h3></div>
+    <p class="day-sub">// Monitoramento de Santuários Ecológicos e Mata Atlântica Nativa</p>
+    <div class="video-frame">
+      <video controls muted playsinline src="drone2.mp4"></video>
+    </div>
+    <div class="cards" id="cards-d2"></div>
+
+    <div class="day-head"><span class="day-badge">Fase 3</span><h3>Reserva Extrativista do Mandira</h3></div>
+    <p class="day-sub">// Comunidade quilombola tradicional e desenvolvimento sustentável</p>
+    <div class="cards" id="cards-d3"></div>
+  </div>
+</section>
+
+<section id="telemetria">
+  <div class="container">
+    <div class="section-tag">03 · Diagnóstico de Campo</div>
+    <h2 class="section-title">O espectro visível dos <b>dados</b></h2>
+    <div class="tabs">
+      <button class="tab active" data-tab="comp">Visão Comparativa</button>
+      <button class="tab" data-tab="som">Gráfico de Som</button>
+      <button class="tab" data-tab="luz">Gráfico de Luz</button>
+      <button class="tab" data-tab="temp">Gráfico de Temp</button>
+      <button class="tab" data-tab="raw" onclick="location.hash='#dados'">Tabela Consolidada</button>
+    </div>
+
+    <div class="panel active" data-panel="comp">
+      <div class="panel-grid">
+        <div class="chart-card">
+          <h3 style="margin-bottom:20px;font-size:1.2rem; font-weight: 600;">Mapeamento por Radar</h3>
+          <div class="chart-box"><canvas id="radarChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <h3 style="margin-bottom:20px;font-size:1.2rem; font-weight: 600;">Intensidade Sonora Relativa (dB)</h3>
+          <div class="bars" id="cssBars"></div>
+        </div>
+      </div>
+    </div>
+    <div class="panel" data-panel="som"><div class="chart-card"><div class="chart-box"><canvas id="somChart"></canvas></div></div></div>
+    <div class="panel" data-panel="luz"><div class="chart-card"><div class="chart-box"><canvas id="luzChart"></canvas></div></div></div>
+    <div class="panel" data-panel="temp"><div class="chart-card"><div class="chart-box"><canvas id="tempChart"></canvas></div></div></div>
+  </div>
+</section>
+
+<section id="dados">
+  <div class="container">
+    <div class="section-tag">04 · Base de Dados Matriz</div>
+    <h2 class="section-title">Indicadores e <b>estabilidade</b> de bioma</h2>
+    <p class="lead" style="margin-bottom:32px">Métricas normatizadas: Alertas baseados em desvios ecológicos severos detectados em campo.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Estação Investigada</th><th>Fase</th><th>🔊 Ruído (dB)</th><th>☀️ Luminosidade</th><th>🌡️ Térmico (°C)</th><th>Amostragens</th><th>Status Ambiental</th></tr></thead>
+        <tbody id="rawTable"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="agradecimentos">
+  <div class="container">
+    <div class="section-tag">05 · Reconhecimento</div>
+    <h2 class="obrigado-titulo">Equipe, comunidade e <em>legado</em></h2>
+    <p class="obrigado-sub">Cooperação científica transdisciplinar no Lagamar Paulista.</p>
+ 
+    <div class="obrigado-texto">
+      <p>Este estudo de meio só foi viabilizado pelo comprometimento sistêmico de toda a equipe pedagógica, técnica e comunitária que acompanhou o 7º ano do <strong>Colégio Elvira Brandão</strong>.</p>
+      <p>Aos <strong>professores e educadores</strong> que estruturaram a transposição didática em campo; aos <strong>guias do quilombo do Mandira e caiçaras</strong> que compartilharam séculos de conhecimento empírico; e ao time técnico que coordenou nossa infraestrutura com segurança absoluta: nosso profundo agradecimento.</p>
+      <p>Os dados aqui consolidados registram não apenas métricas de sensores, mas a vivência ativa de uma comunidade estudantil consciente de seu papel ecológico global.</p>
+    </div>
+ 
+    <div class="fotos-grade">
+      <div class="f-item destaque" onclick="abrirLb(0)">
+        <img src="foto1.jpg" alt="Equipe de Campo Cananéia 2026" onerror="this.src='';this.closest('.f-item').style.background='var(--bg-surface)'">
+      </div>
+      <div class="f-item" onclick="abrirLb(1)"><img src="foto2.jpeg" alt="Coleta Ativa" onerror="this.src='';this.closest('.f-item').style.background='var(--bg-surface)'"></div>
+      <div class="f-item" onclick="abrirLb(2)"><img src="foto3.JPG" alt="Análise Coletiva" onerror="this.src='';this.closest('.f-item').style.background='var(--bg-surface)'"></div>
+      <div class="f-item" onclick="abrirLb(3)"><img src="foto4.jpeg" alt="Bioma Estuário" onerror="this.src='';this.closest('.f-item').style.background='var(--bg-surface)'"></div>
+      <div class="f-item" onclick="abrirLb(4)"><img src="foto5.jpeg" alt="Mata Atlântica interior" onerror="this.src='';this.closest('.f-item').style.background='var(--bg-surface)'"></div>
+      <div class="f-item" onclick="abrirLb(5)"><img src="foto6.jpeg" alt="Manejo Sustentável" onerror="this.src='';this.closest('.f-item').style.background='var(--bg-surface)'"></div>
+      <div class="f-item" onclick="abrirLb(6)"><img src="foto7.jpg" alt="Registros Finais" onerror="this.src='';this.closest('.f-item').style.background='var(--bg-surface)'"></div>
+      <div class="f-item" onclick="abrirLb(7)"><img src="foto8.jpg" alt="Mapeamento de Restinga" onerror="this.src='';this.closest('.f-item').style.background='var(--bg-surface)'"></div>
+      <div class="f-item" onclick="abrirLb(8)"><img src="foto9.jpeg" alt="Equipe de Monitores" onerror="this.src='';this.closest('.f-item').style.background='var(--bg-surface)'"></div>
+      <div class="f-item" onclick="abrirLb(9)"><img src="foto10.jpeg" alt="Valo Grande Perfil" onerror="this.src='';this.closest('.f-item').style.background='var(--bg-surface)'"></div>
+      <div class="f-item" onclick="abrirLb(10)"><img src="foto11.jpg" alt="Encerramento de Projeto" onerror="this.src='';this.closest('.f-item').style.background='var(--bg-surface)'"></div>
+      
+      <div class="f-item">
+        <video src="C:\Users\JÚLIO CESAR\Desktop\COLETA\Aluno coletando .mp4" controls muted playsinline></video>
+      </div>
+    </div>
+ 
+    <div class="obrigado-assinatura">
+      Colégio Elvira Brandão
+      <span>Ciência, Tecnologia & Consciência Ecológica</span>
+    </div>
+  </div>
+</section>
+ 
+<div id="player-audio">
+  <button id="btn-audio" onclick="toggleAudio()" title="Controlar Trilha Atmosférica">▶</button>
+  <span style="font-family:'IBM Plex Mono',monospace;font-size:.7rem;letter-spacing:1px;color:var(--text-muted);white-space:nowrap;text-transform:uppercase;">Áudio Ambiente</span>
+  <input type="range" id="vol-audio" min="0" max="1" step="0.01" value="0.15" oninput="document.getElementById('trilha').volume=this.value" style="width:60px;accent-color:var(--accent);cursor:pointer">
+</div>
+
+<audio id="trilha" loop>
+  <source src="trilha.mp3" type="audio/mpeg">
+</audio>
+
+<div id="lb-obrigado">
+  <button class="lb-fechar" onclick="fecharLb()" aria-label="Fechar Lighbox">✕</button>
+  <button class="lb-nav lb-prev" onclick="navLb(-1)" aria-label="Anterior">&#8592;</button>
+  <img id="lb-obrigado-img" src="" alt="Imagem ampliada em alta resolução">
+  <button class="lb-nav lb-next" onclick="navLb(1)" aria-label="Próxima">&#8594;</button>
+  <div class="lb-contador" id="lb-contador">1 / 11</div>
+</div>
+
+<section id="conclusao">
+  <div class="container">
+    <div class="section-tag">06 · Considerações Finais</div>
+    <div class="conclusion">
+      <h2>O impacto silencia; a mata pulsa.</h2>
+      <p>Os registros telemétricos validam com precisão matemática as hipóteses iniciais: o <span class="crit">Valo Grande exibe picos severos de poluição sonora atingindo 112 dB</span> combinados com desvios abruptos na penetração de luminosidade natural. Essa distorção reflete o carreamento maciço de sedimentos decorrente do desvio artificial de curso fluvial.</p>
+      <p>Em contrapartida estrutural, as reservas florestais da <span class="good">Ilha do Cardoso e o Quilombo do Mandira</span> demonstraram curvas telemétricas em perfeito equilíbrio homeostático: ruídos basais estáveis, microclima térmico regulado e radiação luminosa harmonicamente filtrada pelo dossel da Mata Atlântica.</p>
+      <p>A arquitetura com sensores micro:bit transformou impressões subjetivas em evidências gráficas irrefutáveis. Preservar o ecossistema lagunar é garantir a integridade dos parâmetros físicos que sustentam a biodiversidade regional.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+   <div class="container">
+    <p>Site desenvolvido por: <strong>Julio Cesar Mendes Alves</strong></p>
+    <p style="color: var(--text-muted); margin-bottom: 32px;">Direção e Produção de Conteúdo: <strong>Eduardo de Paula</strong></p>
+    <div style="display:flex;align-items:center;justify-content:center;gap:24px;flex-wrap:wrap;">
+      <div style="background:#fff; border-radius:8px; padding:10px 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.2);">
+        <img src="escola.png" alt="Logo Colégio Elvira Brandão" style="height:48px;object-fit:contain;display:block">
+      </div>
+      <div style="background:#fff; border-radius:8px; padding:10px 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.2);">
+        <img src="sphera.jpg" alt="Logo Sphera Educação" style="height:48px;object-fit:contain;display:block">
+      </div>
+    </div>
+  </div>
+</footer>
+
+<div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
+  <button class="close" onclick="closeLightbox(event)">✕</button>
+  <img id="lightboxImg" src="" alt="Ampliação do registro" />
+</div>
+
+<script>
+window.addEventListener('scroll', () => {
+  const sections = document.querySelectorAll('section');
+  const navLinks = document.querySelectorAll('.nav-links a');
+  let current = '';
+  sections.forEach(s => {
+    const top = s.offsetTop - 100;
+    if(window.scrollY >= top) current = s.getAttribute('id');
+  });
+  navLinks.forEach(link => {
+    link.classList.remove('active');
+    if(link.getAttribute('href').includes(current)) link.classList.add('active');
+  });
+});
+
+/* CAMINHOS LOCAIS DO DATASET COMPLETAMENTE RESTAURADOS CONFORME O SEU ORIGINAL */
+const PAL = {
+  morro:'#00e699', centro:'#00e699', valo:'#ff4d4d', ilha:'#00e699',
+  mata:'#00e699', restinga:'#00e699', mangue:'#00e699',
+  quilombo:'#00e699', viveiro:'#ff4d4d', engenho:'#00e699'
+};
+
+const LOCAIS = [
+  {key:'morro', dia:1, nome:'Morro do Espião', img:'morro.png', som:73, luz:222, temp:23, n:7, est:'y'},
+  {key:'centro', dia:1, nome:'Centro Histórico', img:"C:\\Users\\JÚLIO CESAR\\Desktop\\COLETA\\centro historico.png", som:64, luz:248, temp:23, n:7, est:'y'},
+  {key:'valo', dia:1, nome:'Valo Grande', img:'Valo Grande.png', som:112, luz:212, temp:22, n:7, est:'r', alert:true},
+  {key:'mangueI', dia:1, nome:'Ilha de Mangue', img:'Ilha de Mangue.png', som:80, luz:160, temp:22, n:2, est:'y'},
+  {key:'mata', dia:2, nome:'Mata Atlântica', img:'Mata.jpeg', som:48, luz:81, temp:28, n:3, est:'g'},
+  {key:'restinga', dia:2, nome:'Restinga', img:'Restinga.jpeg', som:74, luz:250, temp:22, n:1, est:'y'},
+  {key:'manguezal', dia:2, nome:'Manguezal', img:'Mangue.jpeg', som:59, luz:148, temp:24, n:4, est:'g'},
+  {key:'quilombo', dia:3, nome:'Quilombo do Mandira', img:'mandira.jpg', som:31, luz:246, temp:25, n:3, est:'g'},
+  {key:'viveiro', dia:3, nome:'Viveiro de Ostras', img:'viveiro.jpg', som:102, luz:251, temp:33, n:2, est:'r', alert:true},
+  {key:'engenho', dia:3, nome:'Ruínas do Engenho', img:'engenho.jpg', som:84, luz:156, temp:24, n:2, est:'y'},
+];
+
+function cardHTML(l){
+  const overlay = `🔊 ${l.som} dB | ☀️ ${l.luz} | 🌡️ ${l.temp}°C`;
+  return `<article class="loc-card ${l.alert?'alert':''}">
+    ${l.alert?'<span class="badge-alert">⚠ Crítico</span>':''}
+    <div class="media" data-key="${l.key}">
+      <img src="${l.img}" alt="${l.nome}" onload="this.parentNode.querySelector('.media-placeholder').style.display='none'" onerror="this.style.display='none'">
+      <div class="media-placeholder" onclick="uploadStation(this,'${l.key}')">
+        <span class="ph-icon">📷</span>
+        <span class="ph-name">${l.nome}</span>
+        <span class="ph-cta">Vincular Registro</span>
+      </div>
+      <div class="media-overlay">${overlay}</div>
+    </div>
+    <div class="grad"></div>
+    <div class="body">
+      <h4>${l.nome}</h4>
+    </div>
+  </article>`;
+}
+
+document.getElementById('cards-d1').innerHTML = LOCAIS.filter(l=>l.dia===1).map(cardHTML).join('');
+document.getElementById('cards-d2').innerHTML = LOCAIS.filter(l=>l.dia===2).map(cardHTML).join('');
+document.getElementById('cards-d3').innerHTML = LOCAIS.filter(l=>l.dia===3).map(cardHTML).join('');
+
+/* TABELA */
+document.getElementById('rawTable').innerHTML = LOCAIS.map(l=>{
+  const lbl={g:'Harmonia',y:'Atenção',r:'Pico Crítico'}[l.est];
+  return `<tr>
+    <td><strong>${l.nome}</strong></td><td>Fase ${l.dia}</td>
+    <td><span class="pill ${l.som>=100?'r':l.som>=70?'y':'g'}">${l.som} dB</span></td>
+    <td><span class="pill ${l.luz<120?'r':l.luz<180?'y':'g'}">${l.luz}</span></td>
+    <td><span class="pill ${l.temp>=30?'r':l.temp>=27?'y':'g'}">${l.temp}°C</span></td>
+    <td>${l.n} amostras</td>
+    <td><span class="pill ${l.est}">${lbl}</span></td>
+  </tr>`;
+}).join('');
+
+/* BARRAS CSS */
+const maxSom = Math.max(...LOCAIS.map(l=>l.som));
+document.getElementById('cssBars').innerHTML = LOCAIS.map(l=>{
+  return `<div class="bar-row">
+    <div class="bar-label"><span>${l.nome}</span><strong>${l.som} dB</strong></div>
+    <div class="bar-track"><div class="bar-fill" data-w="${(l.som/maxSom*100).toFixed(0)}" style="background: ${l.est==='r'?'var(--alert)':'var(--accent)'}"></div></div>
+  </div>`;
+}).join('');
+
+/* SWITCH DE ABAS */
+const charts={};
+document.querySelectorAll('.tab').forEach(t=>{
+  if(t.dataset.tab==='raw') return;
+  t.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.querySelector(`.panel[data-panel="${t.dataset.tab}"]`).classList.add('active');
+    setTimeout(()=>{Object.values(charts).forEach(c=>c&&c.resize());animateBars();},50);
+  });
+});
+
+/* CONFIGURAÇÃO DO CHART.JS */
+const labels = LOCAIS.map(l=>l.nome);
+const TEXT_BASE='#e4e8e6', GRID_COLOR='rgba(228, 232, 230, 0.05)';
+Chart.defaults.color=TEXT_BASE; Chart.defaults.font.family="'IBM Plex Mono', monospace";
+
+function applyCleanScales(){ return {grid:{color:GRID_COLOR},ticks:{color:'#8a9490'}}; }
+
+charts.radar = new Chart(document.getElementById('radarChart'),{
+  type:'radar',
+  data:{
+    labels:['Ruído (dB)','Luz Atmosférica','Equilíbrio Térmico'],
+    datasets:[
+      {label:'Valo Grande (Canal Artificial)',data:[112,120,22],borderColor:'#ff4d4d',backgroundColor:'rgba(255,77,77,0.15)',borderWidth:2,pointRadius:0},
+      {label:'Mata Atlântica (Preservado)',data:[48,81,28],borderColor:'#00e699',backgroundColor:'rgba(0,230,153,0.15)',borderWidth:2,pointRadius:0},
+      {label:'Quilombo Mandira (Manejo)',data:[31,246,25],borderColor:'#ffffff',backgroundColor:'rgba(255,255,255,0.08)',borderWidth:2,pointRadius:0}
+    ]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    scales:{r:{grid:{color:GRID_COLOR},angleLines:{color:GRID_COLOR},pointLabels:{color:TEXT_BASE,font:{size:11}},ticks:{display:false,backdropColor:'transparent'}}},
+    plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:11}}}}
+  }
+});
+
+charts.som = new Chart(document.getElementById('somChart'),{
+  type:'bar',
+  data:{labels,datasets:[{data:LOCAIS.map(l=>l.som),backgroundColor:LOCAIS.map(l=>l.est==='r'?'#ff4d4d':'#00e699'),borderRadius:4}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:applyCleanScales(),y:{...applyCleanScales(),beginAtZero:true}}}
+});
+
+charts.luz = new Chart(document.getElementById('luzChart'),{
+  type:'bar',
+  data:{labels,datasets:[{data:LOCAIS.map(l=>l.luz),backgroundColor: '#00e699',borderRadius:4}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:applyCleanScales(),y:{...applyCleanScales(),beginAtZero:true}}}
+});
+
+charts.temp = new Chart(document.getElementById('tempChart'),{
+  type:'line',
+  data:{labels,datasets:[{data:LOCAIS.map(l=>l.temp),borderColor:'#00e699',backgroundColor:'rgba(0,230,153,0.05)',fill:true,tension:0.25,pointRadius:4,pointBackgroundColor:'#ffffff'}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:applyCleanScales(),y:applyCleanScales()}}
+});
+
+function animateBars(){document.querySelectorAll('.bar-fill').forEach(b=>{b.style.width=b.dataset.w+'%';});}
+
+function uploadStation(ph,key){
+  const inp=document.createElement('input'); inp.type='file'; inp.accept='image/*,video/*'; inp.style.display='none';
+  inp.addEventListener('change',ev=>{
+    const file=ev.target.files[0]; if(!file) return;
+    const url=URL.createObjectURL(file);
+    const media=ph.parentNode;
+    const isVideo=file.type.startsWith('video');
+    const old=media.querySelector('img, video');
+    if(old && old!==ph) old.remove();
+    let el = isVideo ? document.createElement('video') : document.createElement('img');
+    if(isVideo) { el.controls=true; el.playsInline=true; }
+    el.src=url; el.style.cssText='width:100%;height:100%;display:block;object-fit:cover;position:absolute;inset:0;z-index:1;';
+    media.insertBefore(el,ph); ph.style.display='none';
+  });
+  document.body.appendChild(inp); inp.click(); setTimeout(()=>inp.remove(),10000);
+}
+
+/* EXTENSÕES EXATAS DAS FOTOS REPLICADAS DO SEU ORIGINAL */
+(function(){
+  const fotos = ['foto1.jpg','foto2.jpeg','foto3.jpg','foto4.jpeg','foto5.jpeg','foto6.jpeg','foto7.jpg','foto8.jpg','foto9.jpeg','foto10.jpeg','foto11.jpg'];
+  let atual = 0;
+  window.abrirLb = function(idx){
+    atual = idx;
+    document.getElementById('lb-obrigado-img').src = fotos[atual];
+    document.getElementById('lb-contador').textContent = (atual+1)+' / '+fotos.length;
+    document.getElementById('lb-obrigado').classList.add('aberto');
+    document.body.style.overflow = 'hidden';
+  };
+  window.fecharLb = function(){
+    document.getElementById('lb-obrigado').classList.remove('aberto');
+    document.body.style.overflow = '';
+  };
+  window.navLb = function(dir){
+    atual = (atual + dir + fotos.length) % fotos.length;
+    document.getElementById('lb-obrigado-img').src = fotos[atual];
+    document.getElementById('lb-contador').textContent = (atual+1)+' / '+fotos.length;
+  };
+  document.getElementById('lb-obrigado').addEventListener('click', function(e){if(e.target === this) fecharLb();});
+})();
+
+document.addEventListener('click',e=>{
+  const img=e.target.closest('.media img');
+  if(img && img.src && img.style.display!=='none'){openLightbox(img.src);}
+});
+function openLightbox(src){document.getElementById('lightboxImg').src=src;document.getElementById('lightbox').classList.add('open');}
+function closeLightbox(e){if(e.target.id==='lightbox'||e.target.classList.contains('close')) {document.getElementById('lightbox').classList.remove('open');}}
+
+setTimeout(animateBars,300);
+const audio = document.getElementById('trilha');
+const btn = document.getElementById('btn-audio');
+window.toggleAudio = function(){ if(audio.paused){ audio.play(); btn.textContent = '⏸'; } else { audio.pause(); btn.textContent = '▶'; } };
+</script>
+</body>
+</html>

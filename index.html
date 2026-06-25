@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Impactos Ambientais e Biomas Regionais | Estudo de Meio Cananéia</title>
+<meta name="description" content="Pesquisa científica de campo do 7º ano: telemetria com BBC micro:bit comparando Valo Grande (impactado) e Ilha do Cardoso (preservado)." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;900&family=Lora:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --barro:#2c1a0e; --barro-2:#3a2414; --agua:#0d4a5c; --agua-2:#1a7a8a;
+    --areia:#d4a96a; --mangue:#2d5a27; --mangue-2:#4a8c42; --alerta:#c0392b;
+    --creme:#f5ede0; --creme-dim:#c9bca8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--barro); color:var(--creme); font-family:'Lora',serif;
+    line-height:1.7; overflow-x:hidden;
+    background-image:radial-gradient(circle at 20% 10%, rgba(26,122,138,.12), transparent 40%),
+                     radial-gradient(circle at 80% 60%, rgba(45,90,39,.12), transparent 45%);
+  }
+  h1,h2,h3{font-family:'Playfair Display',serif;line-height:1.15}
+  .mono{font-family:'IBM Plex Mono',monospace}
+  .container{max-width:1400px;margin:0 auto;padding:0 24px}
+  a{color:inherit}
+
+  /* NAVBAR */
+  nav{position:fixed;top:0;left:0;right:0;z-index:100;
+    background:rgba(44,26,14,.55);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    border-bottom:1px solid rgba(212,169,106,.25)}
+  nav .container{display:flex;align-items:center;justify-content:space-between;height:66px}
+  .brand{font-family:'Playfair Display',serif;font-weight:900;font-size:1.25rem;color:var(--areia);letter-spacing:.5px}
+  .brand span{color:var(--agua-2)}
+  .nav-links{display:flex;gap:6px;flex-wrap:wrap}
+  .nav-links a{font-family:'IBM Plex Mono',monospace;font-size:.78rem;text-transform:uppercase;letter-spacing:1px;
+    padding:8px 12px;border-radius:8px;text-decoration:none;color:var(--creme-dim);transition:.2s}
+  .nav-links a:hover{color:var(--creme);background:rgba(212,169,106,.15)}
+  .menu-btn{display:none;background:none;border:1px solid var(--areia);color:var(--areia);border-radius:8px;padding:6px 10px;font-size:1.1rem;cursor:pointer}
+
+  /* HERO */
+  header.hero{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden}
+  .hero-waves{position:absolute;inset:0;z-index:0}
+  .hero-waves svg{width:100%;height:100%}
+  .hero-content{position:relative;z-index:2;padding:120px 24px 80px;max-width:1100px}
+  .eyebrow{font-family:'IBM Plex Mono',monospace;letter-spacing:4px;text-transform:uppercase;font-size:.8rem;color:var(--areia);margin-bottom:18px}
+  .hero h1{font-size:clamp(2.4rem,6.5vw,5.2rem);font-weight:900;color:var(--creme);text-shadow:0 6px 30px rgba(0,0,0,.5)}
+  .hero h1 em{font-style:italic;color:var(--areia)}
+  .hero p.sub{margin:22px auto 34px;max-width:680px;font-size:1.15rem;color:var(--creme-dim)}
+  .meta-row{display:flex;flex-wrap:wrap;gap:14px;justify-content:center}
+  .meta-pill{font-family:'IBM Plex Mono',monospace;font-size:.85rem;background:rgba(13,74,92,.5);border:1px solid rgba(26,122,138,.6);
+    padding:10px 18px;border-radius:999px;color:var(--creme)}
+  .scroll-cue{margin-top:46px;font-family:'IBM Plex Mono',monospace;font-size:.75rem;color:var(--creme-dim);animation:bob 2s ease-in-out infinite}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(8px)}}
+
+  /* BNCC HABILIDADES */
+  .bncc-section{position:relative;z-index:2;padding:70px 0 90px;background:linear-gradient(180deg,transparent 0%,rgba(13,74,92,.08) 50%,transparent 100%)}
+  .bncc-header{text-align:center;margin-bottom:52px}
+  .bncc-eyebrow{font-family:'IBM Plex Mono',monospace;letter-spacing:4px;text-transform:uppercase;font-size:.75rem;color:var(--agua-2);margin-bottom:14px}
+  .bncc-title{font-family:'Playfair Display',serif;font-size:clamp(1.7rem,3.5vw,2.6rem);font-weight:700;color:var(--creme)}
+  .bncc-title em{font-style:italic;color:var(--areia)}
+  .bncc-subtitle{font-family:'Lora',serif;font-size:1rem;color:var(--creme-dim);margin-top:12px}
+
+  .bncc-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;position:relative}
+  .bncc-cards::before{content:"";position:absolute;inset:-30px;background:radial-gradient(ellipse 60% 60% at 50% 50%,rgba(26,122,138,.07),transparent);pointer-events:none;z-index:-1}
+
+  .bncc-card{
+    position:relative;border-radius:20px;padding:34px 28px;cursor:pointer;
+    background:rgba(26,20,12,.55);border:1px solid rgba(212,169,106,.18);
+    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+    transition:transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s ease, border-color .35s ease;
+    overflow:hidden
+  }
+  .bncc-card::before{
+    content:"";position:absolute;inset:0;border-radius:20px;
+    background:radial-gradient(circle at 50% -10%,rgba(26,122,138,.22),transparent 70%);
+    opacity:0;transition:opacity .4s ease
+  }
+  .bncc-card:hover{transform:translateY(-8px) scale(1.01);box-shadow:0 28px 60px rgba(0,0,0,.45),0 0 0 1px rgba(26,122,138,.5)}
+  .bncc-card:hover::before{opacity:1}
+  .bncc-card.active{border-color:var(--agua-2);box-shadow:0 0 0 2px rgba(26,122,138,.55),0 28px 60px rgba(0,0,0,.4)}
+  .bncc-card.active::before{opacity:1}
+
+  .bncc-card-glow{position:absolute;top:-60px;right:-60px;width:180px;height:180px;border-radius:50%;filter:blur(40px);opacity:.18;pointer-events:none;transition:opacity .4s}
+  .bncc-card:hover .bncc-card-glow{opacity:.32}
+
+  .bncc-code{font-family:'IBM Plex Mono',monospace;font-size:.72rem;letter-spacing:2px;text-transform:uppercase;
+    color:var(--agua-2);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+  .bncc-code::before{content:"";display:inline-block;width:24px;height:2px;background:var(--agua-2);border-radius:1px}
+  .bncc-icon{font-size:2.4rem;margin-bottom:16px;display:block;filter:drop-shadow(0 4px 12px rgba(0,0,0,.3))}
+  .bncc-card h3{font-family:'Playfair Display',serif;font-size:1.35rem;font-weight:700;color:var(--creme);margin-bottom:12px;line-height:1.2}
+  .bncc-card .bncc-desc{font-family:'Lora',serif;font-size:.92rem;color:var(--creme-dim);line-height:1.7;margin-bottom:20px}
+
+  .bncc-tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:22px}
+  .bncc-tag{font-family:'IBM Plex Mono',monospace;font-size:.7rem;letter-spacing:.5px;padding:5px 11px;
+    border-radius:999px;background:rgba(212,169,106,.12);border:1px solid rgba(212,169,106,.25);color:var(--areia)}
+
+  .bncc-expand-btn{font-family:'IBM Plex Mono',monospace;font-size:.75rem;letter-spacing:1px;text-transform:uppercase;
+    color:var(--agua-2);background:none;border:1px dashed rgba(26,122,138,.45);border-radius:8px;
+    padding:9px 16px;cursor:pointer;transition:.2s;width:100%}
+  .bncc-expand-btn:hover{background:rgba(26,122,138,.12);border-color:var(--agua-2);color:var(--creme)}
+
+  .bncc-detail{max-height:0;overflow:hidden;transition:max-height .45s cubic-bezier(.2,.8,.2,1),opacity .35s ease;opacity:0}
+  .bncc-detail.open{max-height:300px;opacity:1}
+  .bncc-detail-inner{padding-top:18px;border-top:1px solid rgba(212,169,106,.15);margin-top:16px}
+  .bncc-detail-inner p{font-family:'Lora',serif;font-size:.88rem;color:var(--creme-dim);line-height:1.75;margin-bottom:10px}
+  .bncc-detail-inner p:last-child{margin-bottom:0}
+  .bncc-detail-inner strong{color:var(--areia)}
+
+  .bncc-connection{margin-top:48px;text-align:center;padding:28px;border-radius:16px;
+    background:rgba(13,74,92,.2);border:1px solid rgba(26,122,138,.25)}
+  .bncc-connection p{font-family:'IBM Plex Mono',monospace;font-size:.82rem;color:var(--creme-dim);letter-spacing:.5px;line-height:1.8}
+  .bncc-connection strong{color:var(--areia)}
+
+  @media(max-width:860px){
+    .bncc-cards{grid-template-columns:1fr}
+    .bncc-card{padding:26px 22px}
+  }
+
+  section{padding:90px 0;position:relative;z-index:2}
+  .section-tag{font-family:'IBM Plex Mono',monospace;color:var(--agua-2);letter-spacing:3px;text-transform:uppercase;font-size:.78rem;margin-bottom:12px}
+  .section-title{font-size:clamp(1.9rem,4vw,3rem);font-weight:700;color:var(--creme);margin-bottom:18px}
+  .section-title b{color:var(--areia)}
+  .lead{font-size:1.1rem;color:var(--creme-dim);max-width:760px}
+
+  /* OBJETIVO */
+  .obj-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;margin-top:40px}
+  .obj-text p{margin-bottom:18px}
+  .obj-text .hl{color:var(--areia);font-weight:500}
+  .photo-frame{position:relative;border-radius:18px;overflow:hidden;border:1px solid rgba(212,169,106,.3);box-shadow:0 30px 60px rgba(0,0,0,.45)}
+  .photo-frame img{width:100%;display:block;aspect-ratio:4/3;object-fit:cover;background:var(--barro-2)}
+  .add-btn{margin-top:18px;display:inline-flex;align-items:center;gap:10px;cursor:pointer;
+    font-family:'IBM Plex Mono',monospace;font-size:.85rem;background:var(--agua);border:1px solid var(--agua-2);
+    color:var(--creme);padding:12px 20px;border-radius:10px;transition:.2s}
+  .add-btn:hover{background:var(--agua-2);transform:translateY(-2px)}
+
+  /* DAY / STATIONS */
+  .day-head{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;margin:60px 0 8px}
+  .day-badge{font-family:'IBM Plex Mono',monospace;background:var(--mangue);color:var(--creme);padding:6px 14px;border-radius:8px;font-size:.8rem;letter-spacing:1px}
+  .day-head h3{font-size:1.8rem;color:var(--creme)}
+  .day-sub{color:var(--creme-dim);font-family:'IBM Plex Mono',monospace;font-size:.85rem;margin-bottom:24px}
+
+  .video-frame{width:100%;border-radius:18px;overflow:hidden;border:1px solid rgba(26,122,138,.4);margin:18px 0 36px;box-shadow:0 24px 50px rgba(0,0,0,.4)}
+  .video-frame video{width:100%;display:block;aspect-ratio:16/7;object-fit:cover;background:#000}
+
+  .cards{display:grid;grid-template-columns:repeat(2,1fr);gap:28px}
+  .loc-card{position:relative;border-radius:20px;overflow:hidden;min-height:420px;display:flex;flex-direction:column;justify-content:flex-end;
+    border:1px solid rgba(212,169,106,.25);background:var(--barro-2);box-shadow:0 24px 50px rgba(0,0,0,.4);transition:.3s}
+  .loc-card:hover{transform:translateY(-6px);box-shadow:0 34px 70px rgba(0,0,0,.55)}
+  .loc-card .media{position:absolute;inset:0}
+  .loc-card .media img{width:100%;height:100%;object-fit:cover;display:block}
+  .loc-card .grad{position:absolute;inset:0;background:linear-gradient(to top,rgba(20,11,4,.95) 0%,rgba(20,11,4,.35) 55%,transparent 100%)}
+  .loc-card .body{position:relative;z-index:3;padding:28px}
+  .loc-card.alert{border-color:var(--alerta);box-shadow:0 0 0 1px var(--alerta),0 24px 50px rgba(192,57,43,.3)}
+  .badge-alert{position:absolute;top:18px;left:18px;z-index:4;background:var(--alerta);color:#fff;font-family:'IBM Plex Mono',monospace;
+    font-size:.72rem;letter-spacing:1px;padding:6px 12px;border-radius:8px;text-transform:uppercase;animation:pulse 1.8s infinite}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(192,57,43,.6)}50%{box-shadow:0 0 0 10px rgba(192,57,43,0)}}
+  .loc-card h4{font-family:'Playfair Display',serif;font-size:1.7rem;color:var(--creme);margin-bottom:14px}
+  .telemetry{display:flex;gap:10px;flex-wrap:wrap}
+  .tchip{font-family:'IBM Plex Mono',monospace;font-size:.82rem;background:rgba(13,74,92,.7);border:1px solid rgba(26,122,138,.6);
+    padding:8px 12px;border-radius:10px;color:var(--creme)}
+  .tchip.hot{background:rgba(192,57,43,.7);border-color:var(--alerta)}
+
+  /* TABS / TELEMETRY */
+  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin:34px 0 30px;border-bottom:1px solid rgba(212,169,106,.2);padding-bottom:14px}
+  .tab{font-family:'IBM Plex Mono',monospace;font-size:.82rem;letter-spacing:.5px;cursor:pointer;background:transparent;
+    border:1px solid rgba(212,169,106,.3);color:var(--creme-dim);padding:11px 18px;border-radius:10px;transition:.2s}
+  .tab:hover{color:var(--creme)}
+  .tab.active{background:var(--areia);color:var(--barro);border-color:var(--areia);font-weight:600}
+  .panel{display:none;animation:fade .4s ease}
+  .panel.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .chart-card{background:var(--barro-2);border:1px solid rgba(212,169,106,.2);border-radius:18px;padding:26px;box-shadow:0 20px 40px rgba(0,0,0,.3)}
+  .chart-box{position:relative;height:440px}
+  .panel-grid{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:stretch}
+  .panel-grid .chart-box{height:480px}
+
+  .bars{display:flex;flex-direction:column;gap:18px;margin-top:6px}
+  .bar-row .bar-label{display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:.8rem;margin-bottom:6px;color:var(--creme-dim)}
+  .bar-track{height:16px;background:rgba(255,255,255,.06);border-radius:999px;overflow:hidden}
+  .bar-fill{height:100%;width:0;border-radius:999px;transition:width 1.4s cubic-bezier(.2,.8,.2,1)}
+
+  /* TABLE */
+  .table-wrap{overflow-x:auto;border-radius:16px;border:1px solid rgba(212,169,106,.2)}
+  table{width:100%;border-collapse:collapse;min-width:680px;font-family:'IBM Plex Mono',monospace;font-size:.85rem}
+  th,td{padding:14px 16px;text-align:left;border-bottom:1px solid rgba(212,169,106,.12)}
+  th{background:var(--agua);color:var(--creme);text-transform:uppercase;letter-spacing:1px;font-size:.74rem}
+  tbody tr:hover{background:rgba(212,169,106,.06)}
+  .pill{display:inline-block;padding:4px 12px;border-radius:999px;font-size:.78rem;font-weight:600}
+  .pill.g{background:rgba(74,140,66,.25);color:#9ed68f;border:1px solid var(--mangue-2)}
+  .pill.y{background:rgba(212,169,106,.22);color:var(--areia);border:1px solid var(--areia)}
+  .pill.r{background:rgba(192,57,43,.25);color:#f29b90;border:1px solid var(--alerta)}
+
+  /* ── AGRADECIMENTOS ─────────────────────────────── */
+  #agradecimentos{background:linear-gradient(180deg,var(--barro) 0%,#1a0e06 60%,var(--barro) 100%);padding:100px 0 120px;position:relative;overflow:hidden}
+  #agradecimentos::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 80% 50% at 50% 30%,rgba(26,122,138,.18),transparent);pointer-events:none}
+ 
+  .obrigado-eyebrow{font-family:'IBM Plex Mono',monospace;color:var(--agua-2);letter-spacing:4px;text-transform:uppercase;font-size:.78rem;margin-bottom:16px}
+ 
+  .obrigado-titulo{font-family:'Playfair Display',serif;font-size:clamp(2rem,5.5vw,4rem);font-weight:900;color:var(--creme);line-height:1.1;margin-bottom:10px}
+  .obrigado-titulo em{font-style:italic;color:var(--areia)}
+ 
+  .obrigado-sub{font-family:'Playfair Display',serif;font-style:italic;font-size:clamp(1.1rem,2.2vw,1.55rem);color:var(--creme-dim);margin-bottom:36px;max-width:700px}
+ 
+  .obrigado-texto{max-width:820px;font-size:1.12rem;color:rgba(245,237,224,.82);line-height:1.85;margin-bottom:56px}
+  .obrigado-texto p{margin-bottom:1.1em}
+  .obrigado-texto p:last-child{margin-bottom:0}
+  .obrigado-texto strong{color:var(--areia);font-weight:600}
+ 
+  /* grade de fotos */
+  .fotos-grade{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+  .fotos-grade .f-item{position:relative;border-radius:14px;overflow:hidden;aspect-ratio:1/1;background:rgba(255,255,255,.05);border:1px solid rgba(212,169,106,.2);cursor:zoom-in;transition:transform .3s ease,box-shadow .3s ease}
+  .fotos-grade .f-item:hover{transform:scale(1.035);box-shadow:0 18px 45px rgba(0,0,0,.55);z-index:2}
+  /* item destaque — ocupa 2 colunas × 2 linhas */
+  .fotos-grade .f-item.destaque{grid-column:span 2;grid-row:span 2;aspect-ratio:auto}
+  .fotos-grade .f-item img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s ease}
+  .fotos-grade .f-item:hover img{transform:scale(1.06)}
+ 
+  /* assinatura final */
+  .obrigado-assinatura{text-align:center;font-family:'Playfair Display',serif;font-style:italic;font-size:1.3rem;color:var(--areia);margin-top:52px;padding-top:44px;border-top:1px solid rgba(212,169,106,.2);letter-spacing:.5px}
+  .obrigado-assinatura span{display:block;font-family:'IBM Plex Mono',monospace;font-style:normal;font-size:.78rem;letter-spacing:3px;text-transform:uppercase;color:var(--creme-dim);margin-top:8px}
+ 
+  /* lightbox agradecimentos */
+  #lb-obrigado{position:fixed;inset:0;z-index:500;background:rgba(8,4,1,.97);display:none;align-items:center;justify-content:center;padding:20px}
+  #lb-obrigado.aberto{display:flex}
+  #lb-obrigado img{max-width:94vw;max-height:90vh;border-radius:12px;object-fit:contain;box-shadow:0 40px 100px rgba(0,0,0,.8)}
+  #lb-obrigado .lb-fechar{position:absolute;top:22px;right:26px;background:none;border:none;color:var(--creme);font-size:2.2rem;cursor:pointer;line-height:1;opacity:.8;transition:opacity .2s}
+  #lb-obrigado .lb-fechar:hover{opacity:1}
+  #lb-obrigado .lb-nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(212,169,106,.18);border:1px solid rgba(212,169,106,.4);color:var(--areia);font-size:1.6rem;cursor:pointer;border-radius:50%;width:48px;height:48px;display:flex;align-items:center;justify-content:center;transition:.2s}
+  #lb-obrigado .lb-nav:hover{background:rgba(212,169,106,.4)}
+  #lb-obrigado .lb-prev{left:20px}
+  #lb-obrigado .lb-next{right:20px}
+  #lb-obrigado .lb-contador{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);font-family:'IBM Plex Mono',monospace;font-size:.78rem;color:var(--creme-dim);letter-spacing:2px}
+ 
+  @media(max-width:860px){
+    .fotos-grade{grid-template-columns:repeat(2,1fr)}
+    .fotos-grade .f-item.destaque{grid-column:span 2;grid-row:span 1;aspect-ratio:16/9}
+  }
+  @media(max-width:480px){
+    .fotos-grade{grid-template-columns:1fr 1fr;gap:8px}
+    .fotos-grade .f-item.destaque{grid-column:span 2}
+  }
+
+  /* CONCLUSION */
+  .conclusion{background:linear-gradient(135deg,var(--agua) 0%,var(--barro-2) 100%);
+    border:1px solid rgba(212,169,106,.3);border-radius:24px;padding:50px;box-shadow:0 30px 70px rgba(0,0,0,.45);position:relative;overflow:hidden}
+  .conclusion::before{content:"";position:absolute;top:-40px;right:-40px;width:220px;height:220px;border-radius:50%;background:rgba(192,57,43,.18);filter:blur(20px)}
+  .conclusion h2{font-size:clamp(1.8rem,3.5vw,2.6rem);color:var(--creme);margin-bottom:20px;position:relative}
+  .conclusion p{font-size:1.12rem;color:var(--creme);margin-bottom:16px;position:relative}
+  .conclusion .crit{color:#f29b90;font-weight:600}
+  .conclusion .good{color:#9ed68f;font-weight:600}
+
+  footer{padding:50px 0;text-align:center;color:var(--creme-dim);font-family:'IBM Plex Mono',monospace;font-size:.8rem;border-top:1px solid rgba(212,169,106,.15)}
+
+  /* uploaded media + overlay + delete */
+  .media-overlay{position:absolute;bottom:0;left:0;right:0;z-index:5;background:linear-gradient(to top,rgba(10,6,2,.92),transparent);
+    padding:18px;font-family:'IBM Plex Mono',monospace;font-size:.9rem;color:var(--creme);letter-spacing:.5px}
+  .media-placeholder{position:absolute;inset:0;z-index:4;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+    text-align:center;cursor:pointer;padding:20px;transition:.25s}
+  .media-placeholder:hover{background:rgba(255,255,255,.06)}
+  .media-placeholder .ph-icon{font-size:2.4rem;opacity:.9}
+  .media-placeholder .ph-name{font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--creme)}
+  .media-placeholder .ph-cta{font-family:'IBM Plex Mono',monospace;font-size:.72rem;letter-spacing:1px;text-transform:uppercase;
+    color:var(--creme);opacity:.7;border:1px dashed rgba(245,237,224,.45);padding:6px 12px;border-radius:30px}
+  .del-btn{position:absolute;top:14px;right:14px;z-index:6;width:38px;height:38px;border-radius:50%;background:var(--alerta);color:#fff;
+    border:none;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(0,0,0,.4);transition:.2s}
+  .del-btn:hover{transform:scale(1.12)}
+  .uploaded-extra{margin-top:28px;display:grid;grid-template-columns:1fr;gap:24px}
+  .uploaded-extra .photo-frame img{aspect-ratio:16/9}
+  img.zoomable,video{cursor:zoom-in}
+
+  /* LIGHTBOX */
+  .lightbox{position:fixed;inset:0;z-index:200;background:rgba(8,4,1,.96);display:none;align-items:center;justify-content:center;padding:24px}
+  .lightbox.open{display:flex}
+  .lightbox img{max-width:96vw;max-height:92vh;border-radius:10px;box-shadow:0 30px 80px rgba(0,0,0,.7)}
+  .lightbox .close{position:absolute;top:22px;right:26px;font-size:2rem;color:var(--creme);background:none;border:none;cursor:pointer}
+
+  @media(max-width:860px){
+    .nav-links{display:none;position:absolute;top:66px;left:0;right:0;flex-direction:column;background:rgba(44,26,14,.97);padding:14px 24px;gap:4px}
+    .nav-links.show{display:flex}
+    .menu-btn{display:block}
+    .obj-grid,.cards,.panel-grid{grid-template-columns:1fr}
+    .conclusion{padding:32px}
+    section{padding:64px 0}
+  }
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav>
+  <div class="container">
+    <div class="brand">Estudo de meio<span>:</span>Micro:Bit</div>
+    <button class="menu-btn" onclick="document.getElementById('navlinks').classList.toggle('show')">☰</button>
+    <div class="nav-links" id="navlinks">
+      <a href="#objetivo">Objetivo</a>
+      <a href="#habilidades">Habilidades</a>
+      <a href="#estacoes">Estações</a>
+      <a href="#telemetria">Telemetria</a>
+      <a href="#dados">Dados</a>
+      <a href="#conclusao">Conclusão</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-waves">
+    <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="sky" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stop-color="#2c1a0e"/><stop offset="100%" stop-color="#0d4a5c"/>
+        </linearGradient>
+      </defs>
+      <rect width="1440" height="900" fill="url(#sky)"/>
+      <path class="wave w1" fill="#0d4a5c" opacity="0.6" d="M0,620 C240,560 480,680 720,620 C960,560 1200,680 1440,620 L1440,900 L0,900 Z"/>
+      <path class="wave w2" fill="#1a7a8a" opacity="0.5" d="M0,700 C240,650 480,760 720,700 C960,650 1200,760 1440,700 L1440,900 L0,900 Z"/>
+      <path class="wave w3" fill="#2d5a27" opacity="0.45" d="M0,780 C240,740 480,830 720,780 C960,740 1200,830 1440,780 L1440,900 L0,900 Z"/>
+    </svg>
+  </div>
+  <div class="hero-content">
+    <div class="eyebrow">Estudo de Meio · 7º Ano · Cananéia</div>
+    <h1>Impactos Ambientais e <em>Biomas Regionais</em></h1>
+    <p class="sub">Telemetria de campo com sensores BBC micro:bit comparando uma área impactada — o Valo Grande — com áreas preservadas da Ilha do Cardoso, Mata Atlântica e Reserva do Mandira.</p>
+    <div class="meta-row">
+      <span class="meta-pill">📅 27/05 · 28/05 · 29/05 · 2026</span>
+      <span class="meta-pill">🧪 37 amostras telemétricas</span>
+      <span class="meta-pill">🔊 Som · ☀️ Luz · 🌡️ Temperatura</span>
+    </div>
+    <div class="scroll-cue">▼ descer para explorar</div>
+  </div>
+</header>
+
+<!-- HABILIDADES BNCC -->
+<section class="bncc-section" id="habilidades">
+  <div class="container">
+    <div class="bncc-header">
+      <div class="bncc-eyebrow">BNCC · Tecnologia &amp; Inovação</div>
+      <h2 class="bncc-title">Habilidades <em>desenvolvidas</em> neste projeto</h2>
+      <p class="bncc-subtitle">Clique em cada habilidade para explorar como ela se aplica ao estudo de meio</p>
+    </div>
+
+    <div class="bncc-cards">
+
+      <!-- Card 1: Tipos de dados -->
+      <div class="bncc-card" onclick="toggleBncc(this)">
+        <div class="bncc-card-glow" style="background:var(--agua-2)"></div>
+        <div class="bncc-code">EF69CO01</div>
+        <span class="bncc-icon">🗂️</span>
+        <h3>Tipos de Dados</h3>
+        <p class="bncc-desc">Identificar, classificar e trabalhar com diferentes tipos de dados coletados pelos sensores BBC micro:bit em campo — numéricos, textuais e booleanos.</p>
+        <div class="bncc-tags">
+          <span class="bncc-tag">Numérico</span>
+          <span class="bncc-tag">Booleano</span>
+          <span class="bncc-tag">Textual</span>
+          <span class="bncc-tag">Sensor</span>
+        </div>
+        <button class="bncc-expand-btn">▾ Ver aplicação no projeto</button>
+        <div class="bncc-detail">
+          <div class="bncc-detail-inner">
+            <p>Os sensores micro:bit coletaram dados de <strong>temperatura (float)</strong>, <strong>luminosidade (inteiro)</strong> e <strong>som (inteiro em dB)</strong>. Cada tipo de dado exige tratamento diferente: médias para numéricos contínuos, intervalos para discretos.</p>
+            <p>Ao organizar as <strong>37 amostras telémetricas</strong>, os alunos precisaram distinguir dados de texto (nome do local) de dados quantitativos (leituras dos sensores), desenvolvendo a habilidade de tipagem.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2: Linguagem de Programação -->
+      <div class="bncc-card" onclick="toggleBncc(this)">
+        <div class="bncc-card-glow" style="background:var(--mangue-2)"></div>
+        <div class="bncc-code">EF69CO03</div>
+        <span class="bncc-icon">💻</span>
+        <h3>Linguagem de Programação</h3>
+        <p class="bncc-desc">Criar e interpretar algoritmos com sequências, condições e repetições usando blocos e JavaScript no ambiente MakeCode do BBC micro:bit.</p>
+        <div class="bncc-tags">
+          <span class="bncc-tag">MakeCode</span>
+          <span class="bncc-tag">Blocos</span>
+          <span class="bncc-tag">JavaScript</span>
+          <span class="bncc-tag">Algoritmo</span>
+        </div>
+        <button class="bncc-expand-btn">▾ Ver aplicação no projeto</button>
+        <div class="bncc-detail">
+          <div class="bncc-detail-inner">
+            <p>O micro:bit foi programado para <strong>capturar, armazenar e exibir leituras</strong> de forma autônoma em campo. Estruturas de repetição (<code>forever</code>) e condicionais (<code>if/else</code>) foram usadas para sinalizar valores anômalos via LED.</p>
+            <p>A coleta automatizada liberou a turma para <strong>observar o ambiente</strong> enquanto o algoritmo registrava os dados — conectando lógica de programação com investigação científica real.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: Gestão de Dados -->
+      <div class="bncc-card" onclick="toggleBncc(this)">
+        <div class="bncc-card-glow" style="background:var(--areia)"></div>
+        <div class="bncc-code">EF69CO08</div>
+        <span class="bncc-icon">📊</span>
+        <h3>Gestão de Dados</h3>
+        <p class="bncc-desc">Coletar, organizar, analisar e comunicar dados de forma sistemática para apoiar a tomada de decisões e a produção de conhecimento científico.</p>
+        <div class="bncc-tags">
+          <span class="bncc-tag">Coleta</span>
+          <span class="bncc-tag">Análise</span>
+          <span class="bncc-tag">Visualização</span>
+          <span class="bncc-tag">Comparação</span>
+        </div>
+        <button class="bncc-expand-btn">▾ Ver aplicação no projeto</button>
+        <div class="bncc-detail">
+          <div class="bncc-detail-inner">
+            <p>Os dados coletados nas <strong>5 estações de campo</strong> foram organizados em planilhas, tratados para remover outliers e visualizados nos gráficos interativos desta página — radar, barras e linhas.</p>
+            <p>A comparação entre <strong>Valo Grande (área impactada)</strong> e as <strong>áreas preservadas</strong> só foi possível graças à gestão rigorosa dos dados, demonstrando como a ciência de dados apoia conclusões ambientais.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="bncc-connection">
+      <p>🔗 Estas três habilidades formam um ciclo integrado: <strong>dados têm tipos</strong> → <strong>programas os coletam</strong> → <strong>gestão os transforma em conhecimento</strong></p>
+    </div>
+  </div>
+</section>
+
+<!-- OBJETIVO -->
+<section id="objetivo">
+  <div class="container">
+    <div class="section-tag">01 · Objetivo do Estudo</div>
+    <h2 class="section-title">Comparar o <b>impacto</b> e a <b>preservação</b></h2>
+    <div class="obj-grid">
+      <div class="obj-text">
+        <p>Durante o estudo de meio em Cananéia, a turma do 7º ano utilizou microcomputadores <span class="hl">BBC micro:bit</span> equipados com sensores para coletar dados telemétricos de <span class="hl">som (dB)</span>, <span class="hl">luminosidade</span> e <span class="hl">temperatura</span> diretamente em campo.</p>
+        <p>O objetivo central foi <span class="hl">comparar a área impactada do Valo Grande</span> — um canal artificial que alterou profundamente o estuário — <span class="hl">com áreas preservadas</span> como a Ilha do Cardoso, a Mata Atlântica, a Restinga e a Reserva Extrativista do Mandira.</p>
+        <p>Cada estação de coleta gerou amostras que, reunidas, permitem visualizar de forma científica como a ação humana modifica os indicadores ambientais de um bioma.</p>
+      </div>
+      <div>
+        <div class="photo-frame">
+          <img class="zoomable" src="Turma Completa.png" alt="Turma Completa" onerror="this.style.minHeight='320px';this.alt='Turma Completa.png'" />
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ESTAÇÕES -->
+<section id="estacoes">
+  <div class="container">
+    <div class="section-tag">02 · Estações de Coleta</div>
+    <h2 class="section-title">Os <b>locais</b> investigados em campo</h2>
+    <p class="lead">Três dias de expedição, do estuário impactado às áreas de mata e mangue preservadas.</p>
+
+    <!-- DIA 1 -->
+    <div class="day-head"><span class="day-badge">DIA 1 · 27/05</span><h3>Iguape & Valo Grande</h3></div>
+    <p class="day-sub">// Área urbana e estuário impactado</p>
+    <div class="video-frame">
+      <video controls muted playsinline src="drone1.mp4" poster=""></video>
+    </div>
+    <div class="cards" id="cards-d1"></div>
+
+    <!-- DIA 2 -->
+    <div class="day-head"><span class="day-badge">DIA 2 · 28/05</span><h3>Ilha do Cardoso</h3></div>
+    <p class="day-sub">// Área preservada de Mata Atlântica, Restinga e Manguezal</p>
+    <div class="video-frame">
+      <video controls muted playsinline src="drone2.mp4" poster=""></video>
+    </div>
+    <div class="cards" id="cards-d2"></div>
+
+    <!-- DIA 3 -->
+    <div class="day-head"><span class="day-badge">DIA 3 · 29/05</span><h3>Reserva Extrativista do Mandira</h3></div>
+    <p class="day-sub">// Comunidade quilombola e manejo sustentável de ostras</p>
+    <div class="cards" id="cards-d3"></div>
+  </div>
+</section>
+
+<!-- TELEMETRIA -->
+<section id="telemetria">
+  <div class="container">
+    <div class="section-tag">03 · Painéis de Telemetria</div>
+    <h2 class="section-title">Os <b>dados</b> falam</h2>
+    <div class="tabs">
+      <button class="tab active" data-tab="comp">Visão Comparativa</button>
+      <button class="tab" data-tab="som">Gráfico de Som</button>
+      <button class="tab" data-tab="luz">Gráfico de Luz</button>
+      <button class="tab" data-tab="temp">Gráfico de Temp</button>
+      <button class="tab" data-tab="raw" onclick="location.hash='#dados'">Tabela de Dados</button>
+    </div>
+
+    <div class="panel active" data-panel="comp">
+      <div class="panel-grid">
+        <div class="chart-card"><h3 style="margin-bottom:16px;font-size:1.2rem">Radar telemétrico</h3><div class="chart-box"><canvas id="radarChart"></canvas></div></div>
+        <div class="chart-card">
+          <h3 style="margin-bottom:18px;font-size:1.2rem">Intensidade sonora média (dB)</h3>
+          <div class="bars" id="cssBars"></div>
+        </div>
+      </div>
+    </div>
+    <div class="panel" data-panel="som"><div class="chart-card"><div class="chart-box"><canvas id="somChart"></canvas></div></div></div>
+    <div class="panel" data-panel="luz"><div class="chart-card"><div class="chart-box"><canvas id="luzChart"></canvas></div></div></div>
+    <div class="panel" data-panel="temp"><div class="chart-card"><div class="chart-box"><canvas id="tempChart"></canvas></div></div></div>
+  </div>
+</section>
+
+<!-- DADOS BRUTOS -->
+<section id="dados">
+  <div class="container">
+    <div class="section-tag">04 · Tabela de Dados Brutos</div>
+    <h2 class="section-title">Médias com <b>semáforo</b> ambiental</h2>
+    <p class="lead" style="margin-bottom:26px">Pills verdes = harmonia ambiental · amarelas = atenção · vermelhas = pico crítico.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Local</th><th>Dia</th><th>🔊 Som (dB)</th><th>☀️ Luz</th><th>🌡️ Temp (°C)</th><th>Amostras</th><th>Estado</th></tr></thead>
+        <tbody id="rawTable"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- AGRADECIMENTOS -->
+<section id="agradecimentos">
+  <div class="container">
+ 
+    <div class="obrigado-eyebrow">06 · Agradecimentos</div>
+    <h2 class="obrigado-titulo">Obrigado a cada um<br>que tornou essa viagem <em>inesquecível</em></h2>
+    <p class="obrigado-sub">Três dias de campo, ciência e memórias que ficam para sempre.</p>
+ 
+    <div class="obrigado-texto">
+      <p>
+        Este estudo de meio só foi possível graças ao <strong>empenho, cuidado e dedicação de toda a equipe</strong> que acompanhou a turma do 7º ano durante os três dias de expedição pelo Lagamar Paulista. Cada momento de aprendizado, cada dado coletado com o micro:bit, cada risada no barco e cada olhar de espanto diante da Mata Atlântica — tudo isso existiu porque havia pessoas incríveis ao nosso redor.
+      </p>
+      <p>
+        Aos <strong>professores e educadores</strong> que planejaram, guiaram e transformaram paisagens em aulas vivas: obrigado pela paciência, pelo entusiasmo e por não deixarem nenhuma dúvida sem resposta. Aos <strong>monitores e guias locais</strong> que abriram as portas do Quilombo do Mandira, da Ilha do Cardoso e do estuário do Valo Grande: o seu conhecimento enriqueceu cada amostra que coletamos.
+      </p>
+      <p>
+        À <strong>equipe de apoio</strong> — responsáveis pela logística, alimentação, transporte e segurança — que trabalhou nos bastidores para que tudo transcorresse com tranquilidade: vocês são a base invisível que sustenta tudo que aparece neste relatório.
+      </p>
+      <p>
+        E a <strong>cada aluno e aluna</strong> que se jogou de corpo e alma nessa aventura científica, que acordou cedo, enfrentou o sol e a lama, e trouxe de volta dados, fotografias e uma visão de mundo um pouco maior: este trabalho é de vocês.
+      </p>
+    </div>
+ 
+    <!-- grade de 10 fotos: 1 destaque (2×2) + 6 normais na 1ª linha/coluna + 3 extras -->
+    <div class="fotos-grade">
+      <!-- foto destaque -->
+      <div class="f-item destaque" onclick="abrirLb(0)">
+        <img src="foto1.jpg" alt="Foto 1 — Estudo de Meio Cananéia 2026"
+             onerror="this.src='';this.closest('.f-item').style.background='rgba(26,122,138,.25)'">
+      </div>
+      <!-- fotos 2–7 -->
+      <div class="f-item" onclick="abrirLb(1)"><img src="foto2.jpeg" alt="Foto 2" onerror="this.src='';this.closest('.f-item').style.background='rgba(45,90,39,.25)'"></div>
+      <div class="f-item" onclick="abrirLb(2)"><img src="foto3.jpg" alt="Foto 3" onerror="this.src='';this.closest('.f-item').style.background='rgba(212,169,106,.15)'"></div>
+      <div class="f-item" onclick="abrirLb(3)"><img src="foto4.jpeg" alt="Foto 4" onerror="this.src='';this.closest('.f-item').style.background='rgba(26,122,138,.2)'"></div>
+      <div class="f-item" onclick="abrirLb(4)"><img src="foto5.jpeg" alt="Foto 5" onerror="this.src='';this.closest('.f-item').style.background='rgba(192,57,43,.15)'"></div>
+      <div class="f-item" onclick="abrirLb(5)"><img src="foto6.jpeg" alt="Foto 6" onerror="this.src='';this.closest('.f-item').style.background='rgba(74,140,66,.2)'"></div>
+      <div class="f-item" onclick="abrirLb(6)"><img src="foto7.jpg" alt="Foto 7" onerror="this.src='';this.closest('.f-item').style.background='rgba(212,169,106,.2)'"></div>
+      <!-- fotos 8–10 -->
+      <div class="f-item" onclick="abrirLb(7)"><img src="foto8.jpg" alt="Foto 8" onerror="this.src='';this.closest('.f-item').style.background='rgba(26,122,138,.18)'"></div>
+      <div class="f-item" onclick="abrirLb(8)"><img src="foto9.jpeg" alt="Foto 9" onerror="this.src='';this.closest('.f-item').style.background='rgba(45,90,39,.2)'"></div>
+     
+      <video src="C:\Users\JÚLIO CESAR\Desktop\COLETA\Aluno coletando .mp4" controls muted playsinline style="width:100%;height:100%;object-fit:cover;display:block;border-radius:14px"></video>
+    </div>
+ 
+   
+ 
+  </div>
+</section>
+ 
+<!-- Lightbox exclusivo da seção de agradecimentos -->
+<div id="lb-obrigado">
+  <button class="lb-fechar" onclick="fecharLb()" aria-label="Fechar">✕</button>
+  <button class="lb-nav lb-prev" onclick="navLb(-1)" aria-label="Anterior">&#8592;</button>
+  <img id="lb-obrigado-img" src="" alt="Foto ampliada">
+  <button class="lb-nav lb-next" onclick="navLb(1)" aria-label="Próxima">&#8594;</button>
+  <div class="lb-contador" id="lb-contador">1 / 10</div>
+</div>
+ 
+<script>
+/* lightbox agradecimentos — escopo isolado, não interfere no restante do site */
+(function(){
+  const fotos = ['foto1.jpg','foto2.jpg','foto3.jpg','foto4.jpg','foto5.jpg',
+                 'foto6.jpg','foto7.jpg','foto8.jpg','foto9.jpg','foto10.jpg'];
+  let atual = 0;
+ 
+  window.abrirLb = function(idx){
+    atual = idx;
+    document.getElementById('lb-obrigado-img').src = fotos[atual];
+    document.getElementById('lb-contador').textContent = (atual+1)+' / '+fotos.length;
+    document.getElementById('lb-obrigado').classList.add('aberto');
+    document.body.style.overflow = 'hidden';
+  };
+ 
+  window.fecharLb = function(){
+    document.getElementById('lb-obrigado').classList.remove('aberto');
+    document.body.style.overflow = '';
+  };
+ 
+  window.navLb = function(dir){
+    atual = (atual + dir + fotos.length) % fotos.length;
+    document.getElementById('lb-obrigado-img').src = fotos[atual];
+    document.getElementById('lb-contador').textContent = (atual+1)+' / '+fotos.length;
+  };
+ 
+  /* fechar clicando fora da imagem */
+  document.getElementById('lb-obrigado').addEventListener('click', function(e){
+    if(e.target === this) fecharLb();
+  });
+ 
+  /* navegar com teclado */
+  document.addEventListener('keydown', function(e){
+    if(!document.getElementById('lb-obrigado').classList.contains('aberto')) return;
+    if(e.key==='ArrowLeft')  navLb(-1);
+    if(e.key==='ArrowRight') navLb(1);
+    if(e.key==='Escape')     fecharLb();
+  });
+})();
+</script>
+
+<!-- CONCLUSÃO -->
+<section id="conclusao">
+  <div class="container">
+    <div class="section-tag">05 · Conclusão</div>
+    <div class="conclusion">
+      <h2>O estuário impactado grita; a mata respira.</h2>
+      <p>Os dados confirmam a hipótese: o <span class="crit">Valo Grande apresenta picos críticos de som, chegando a 159 dB</span>, e uma <span class="crit">turbidez anómala</span> que provoca o bloqueio irregular da luz (quedas bruscas de luminosidade para 96 e 152), revelando água carregada de sedimentos e forte interferência humana.</p>
+      <p>Em contraste, a <span class="good">Mata Atlântica e a Restinga da Ilha do Cardoso</span>, bem como o <span class="good">Quilombo do Mandira</span>, demonstram uma <span class="good">harmonia telemétrica</span>: ruído de fundo baixo, luminosidade estável filtrada pela vegetação e temperatura equilibrada.</p>
+      <p>A telemetria com micro:bit traduziu, em números, o que a paisagem já anunciava — a preservação dos biomas regionais é também a preservação do silêncio, da luz e do equilíbrio térmico da Mata Atlântica.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">Site desenvolvido por Julio Cesar Mendes Alves</div>
+  <div class="container">Produção de conteúdo: Eduardo de Paula</div>
+   <div style="display:flex;align-items:center;justify-content:center;gap:32px;flex-wrap:wrap;margin-bottom:28px">
+      <div style="background:rgb(255, 255, 255);border:1px solid rgb(255, 255, 255);border-radius:12px;padding:12px 20px">
+        <img src="escola.png" alt="Logo da Escola" style="height:55px;object-fit:contain;display:block">
+      </div>
+      <div style="background:rgb(255, 255, 255);border:1px solid rgb(251, 251, 251);border-radius:12px;padding:12px 20px">
+        <img src="sphera.jpg" alt="Sphera Educação" style="height:55px;object-fit:contain;display:block">
+      </div>
+</footer>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
+  <button class="close" onclick="closeLightbox(event)">✕</button>
+  <img id="lightboxImg" src="" alt="Visualização ampliada" />
+</div>
+
+<script>
+/* ============ DADOS ============ */
+const PAL = {
+  morro:'#d4a96a', centro:'#1a7a8a', valo:'#c0392b', ilha:'#0d4a5c',
+  mata:'#2d5a27', restinga:'#4a8c42', mangue:'#1a7a8a',
+  quilombo:'#4a8c42', viveiro:'#c0392b', engenho:'#d4a96a'
+};
+
+const LOCAIS = [
+  {key:'morro', dia:1, nome:'Morro do Espião', img:'morro.png', som:73, luz:222, temp:23, n:7, est:'y'},
+  {key:'centro', dia:1, nome:'Centro Histórico', img:"C:\\Users\\JÚLIO CESAR\\Desktop\\COLETA\\centro historico.png", som:64, luz:248, temp:23, n:7, est:'y'},
+  {key:'valo', dia:1, nome:'Valo Grande', img:'Valo Grande.png', som:112, luz:212, temp:22, n:7, est:'r', alert:true},
+  {key:'mangueI', dia:1, nome:'Ilha de Mangue', img:'Ilha de Mangue.png', som:80, luz:160, temp:22, n:2, est:'y', col:'#1a7a8a'},
+  {key:'mata', dia:2, nome:'Mata Atlântica', img:'Mata.jpeg', som:48, luz:81, temp:28, n:3, est:'g'},
+  {key:'restinga', dia:2, nome:'Restinga', img:'Restinga.jpeg', som:74, luz:250, temp:22, n:1, est:'y'},
+  {key:'manguezal', dia:2, nome:'Manguezal', img:'Mangue.jpeg', som:59, luz:148, temp:24, n:4, est:'g', col:'#4a8c42'},
+  {key:'quilombo', dia:3, nome:'Quilombo do Mandira', img:'mandira.jpg', som:31, luz:246, temp:25, n:3, est:'g'},
+  {key:'viveiro', dia:3, nome:'Viveiro de Ostras', img:'viveiro.jpg', som:102, luz:251, temp:33, n:2, est:'r', alert:true},
+  {key:'engenho', dia:3, nome:'Ruínas do Engenho', img:'engenho.jpg', som:84, luz:156, temp:24, n:2, est:'y'},
+];
+
+/* ============ CARDS ============ */
+function cardHTML(l){
+  const hot = l.est==='r';
+  const c = l.col||PAL[l.key]||'#0d4a5c';
+  const overlay = `🔊 ${l.som} dB | ☀️ ${l.luz} | 🌡️ ${l.temp}°C`;
+  return `<article class="loc-card ${l.alert?'alert':''}">
+    ${l.alert?'<span class="badge-alert">⚠ Alerta Vermelho</span>':''}
+    <div class="media" data-key="${l.key}" style="background:linear-gradient(135deg,${c},#2c1a0e)">
+      <img class="zoomable" src="${l.img}" alt="${l.nome}" onload="this.parentNode.querySelector('.media-placeholder').style.display='none'" onerror="this.style.display='none'">
+      <div class="media-placeholder" onclick="uploadStation(this,'${l.key}')">
+        <span class="ph-icon">📷</span>
+        <span class="ph-name">${l.nome}</span>
+        <span class="ph-cta">Toque para adicionar a foto</span>
+      </div>
+      <div class="media-overlay">${overlay}</div>
+    </div>
+    <div class="grad"></div>
+    <div class="body">
+      <h4>${l.nome}</h4>
+      <div class="telemetry">
+
+      </div>
+    </div>
+  </article>`;
+}
+document.getElementById('cards-d1').innerHTML = LOCAIS.filter(l=>l.dia===1).map(cardHTML).join('');
+document.getElementById('cards-d2').innerHTML = LOCAIS.filter(l=>l.dia===2).map(cardHTML).join('');
+document.getElementById('cards-d3').innerHTML = LOCAIS.filter(l=>l.dia===3).map(cardHTML).join('');
+
+/* ============ TABELA ============ */
+document.getElementById('rawTable').innerHTML = LOCAIS.map(l=>{
+  const lbl={g:'Harmonia',y:'Atenção',r:'Crítico'}[l.est];
+  return `<tr>
+    <td>${l.nome}</td><td>Dia ${l.dia}</td>
+    <td><span class="pill ${l.som>=100?'r':l.som>=70?'y':'g'}">${l.som}</span></td>
+    <td><span class="pill ${l.luz<120?'r':l.luz<180?'y':'g'}">${l.luz}</span></td>
+    <td><span class="pill ${l.temp>=30?'r':l.temp>=27?'y':'g'}">${l.temp}</span></td>
+    <td>${l.n}</td>
+    <td><span class="pill ${l.est}">${lbl}</span></td>
+  </tr>`;
+}).join('');
+
+/* ============ CSS BARS ============ */
+const maxSom = Math.max(...LOCAIS.map(l=>l.som));
+document.getElementById('cssBars').innerHTML = LOCAIS.map(l=>{
+  const c = PAL[l.key]||'#1a7a8a';
+  return `<div class="bar-row">
+    <div class="bar-label"><span>${l.nome}</span><span>${l.som} dB</span></div>
+    <div class="bar-track"><div class="bar-fill" data-w="${(l.som/maxSom*100).toFixed(0)}" style="background:linear-gradient(90deg,${c},${l.est==='r'?'#c0392b':'#d4a96a'})"></div></div>
+  </div>`;
+}).join('');
+
+/* ============ TABS ============ */
+const charts={};
+document.querySelectorAll('.tab').forEach(t=>{
+  if(t.dataset.tab==='raw') return;
+  t.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.querySelector(`.panel[data-panel="${t.dataset.tab}"]`).classList.add('active');
+    setTimeout(()=>{Object.values(charts).forEach(c=>c&&c.resize());animateBars();},60);
+  });
+});
+
+/* ============ CHART.JS ============ */
+const labels = LOCAIS.map(l=>l.nome);
+const colors = LOCAIS.map(l=>PAL[l.key]||'#1a7a8a');
+const CREME='#f5ede0', GRID='rgba(245,237,224,.12)';
+Chart.defaults.color=CREME; Chart.defaults.font.family="'IBM Plex Mono', monospace";
+
+function gridScale(){return {grid:{color:GRID},ticks:{color:'#c9bca8'}};}
+
+charts.radar = new Chart(document.getElementById('radarChart'),{
+  type:'radar',
+  data:{labels:['Som','Luz','Temp'],datasets:[
+    {label:'Valo Grande',data:[112,212,22],borderColor:'#c0392b',backgroundColor:'rgba(192,57,43,.25)',borderWidth:2},
+    {label:'Mata Atlântica',data:[48,81,28],borderColor:'#4a8c42',backgroundColor:'rgba(74,140,66,.25)',borderWidth:2},
+    {label:'Quilombo Mandira',data:[31,246,25],borderColor:'#d4a96a',backgroundColor:'rgba(212,169,106,.2)',borderWidth:2}
+  ]},
+  options:{responsive:true,maintainAspectRatio:false,scales:{r:{grid:{color:GRID},angleLines:{color:GRID},pointLabels:{color:CREME,font:{size:13}},ticks:{color:'#c9bca8',backdropColor:'transparent'}}},plugins:{legend:{position:'bottom'}}}
+});
+
+charts.som = new Chart(document.getElementById('somChart'),{
+  type:'bar',
+  data:{labels,datasets:[{label:'Som médio (dB)',data:LOCAIS.map(l=>l.som),backgroundColor:colors,borderRadius:8}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},title:{display:true,text:'Comparação de ruído (dB) por estação'}},scales:{x:gridScale(),y:{...gridScale(),beginAtZero:true}}}
+});
+
+charts.luz = new Chart(document.getElementById('luzChart'),{
+  type:'bar',
+  data:{labels,datasets:[{label:'Luminosidade média',data:LOCAIS.map(l=>l.luz),backgroundColor:colors,borderRadius:8}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},title:{display:true,text:'Comparação de luminosidade por estação'}},scales:{x:gridScale(),y:{...gridScale(),beginAtZero:true}}}
+});
+
+charts.temp = new Chart(document.getElementById('tempChart'),{
+  type:'line',
+  data:{labels,datasets:[{label:'Temperatura média (°C)',data:LOCAIS.map(l=>l.temp),borderColor:'#d4a96a',backgroundColor:'rgba(212,169,106,.2)',fill:true,tension:.35,pointBackgroundColor:colors,pointRadius:6,borderWidth:3}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},title:{display:true,text:'Variação térmica entre os biomas'}},scales:{x:gridScale(),y:gridScale()}}
+});
+
+function animateBars(){document.querySelectorAll('.bar-fill').forEach(b=>{b.style.width=b.dataset.w+'%';});}
+
+/* ============ UPLOAD / OVERLAY / DELETE ============ */
+let uploadCtx=null;
+function triggerUpload(containerId,key){
+  uploadCtx={containerId,key};
+  let inp=document.getElementById('hiddenUpload');
+  if(!inp){inp=document.createElement('input');inp.type='file';inp.id='hiddenUpload';inp.accept='image/*,video/*';inp.style.display='none';inp.addEventListener('change',handleUpload);document.body.appendChild(inp);}
+  inp.value='';inp.click();
+}
+/* ---- upload de foto direto no card da estação ---- */
+function uploadStation(ph,key){
+  const inp=document.createElement('input');
+  inp.type='file'; inp.accept='image/*,video/*'; inp.style.display='none';
+  inp.addEventListener('change',ev=>{
+    const file=ev.target.files[0]; if(!file) return;
+    const url=URL.createObjectURL(file);
+    const media=ph.parentNode;
+    const isVideo=file.type.startsWith('video');
+    const old=media.querySelector('img.zoomable, video.zoomable');
+    if(old) old.remove();
+    let el;
+    if(isVideo){
+      el=document.createElement('video');
+      el.controls=true; el.playsInline=true; el.src=url;
+    }else{
+      el=document.createElement('img');
+      el.className='zoomable'; el.src=url;
+    }
+    el.style.cssText='width:100%;height:100%;display:block;object-fit:cover;position:absolute;inset:0';
+    media.insertBefore(el,ph);
+    ph.style.display='none';
+  });
+  document.body.appendChild(inp); inp.click();
+  setTimeout(()=>inp.remove(),60000);
+}
+function handleUpload(e){
+  const file=e.target.files[0]; if(!file||!uploadCtx) return;
+  const url=URL.createObjectURL(file);
+  const cont=document.getElementById(uploadCtx.containerId);
+  const isVideo=file.type.startsWith('video');
+  const wrap=document.createElement('div'); wrap.className='photo-frame'; wrap.style.position='relative';
+  const media = isVideo
+    ? `<video controls playsinline src="${url}" style="width:100%;display:block;aspect-ratio:16/9;object-fit:cover"></video>`
+    : `<img class="zoomable" src="${url}" alt="Mídia adicionada" style="width:100%;display:block;aspect-ratio:16/9;object-fit:cover">`;
+  wrap.innerHTML = media +
+    `<button class="del-btn" title="Eliminar">✕</button>
+     <div class="media-overlay">🔊 Estudo de Meio · mídia adicionada pela turma</div>`;
+  wrap.querySelector('.del-btn').onclick=()=>{URL.revokeObjectURL(url);wrap.remove();};
+  cont.appendChild(wrap);
+}
+
+/* ============ LIGHTBOX ============ */
+document.addEventListener('click',e=>{
+  const img=e.target.closest('img.zoomable');
+  if(img && img.src){openLightbox(img.src);}
+});
+function openLightbox(src){document.getElementById('lightboxImg').src=src;document.getElementById('lightbox').classList.add('open');}
+function closeLightbox(e){if(e.target.id==='lightbox'||e.target.classList.contains('close')||e.type==='click'&&e.target.tagName!=='IMG'){document.getElementById('lightbox').classList.remove('open');}}
+
+/* ============ BNCC HABILIDADES ============ */
+function toggleBncc(card){
+  const detail = card.querySelector('.bncc-detail');
+  const btn = card.querySelector('.bncc-expand-btn');
+  const isOpen = detail.classList.contains('open');
+  // Close all
+  document.querySelectorAll('.bncc-detail').forEach(d=>d.classList.remove('open'));
+  document.querySelectorAll('.bncc-card').forEach(c=>c.classList.remove('active'));
+  document.querySelectorAll('.bncc-expand-btn').forEach(b=>{b.textContent=b.textContent.replace('▴','▾')});
+  if(!isOpen){
+    detail.classList.add('open');
+    card.classList.add('active');
+    btn.textContent = btn.textContent.replace('▾','▴');
+  }
+}
+
+// Staggered entrance animation for BNCC cards
+const bnccObserver = new IntersectionObserver((entries)=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting){
+      const cards = entry.target.querySelectorAll('.bncc-card');
+      cards.forEach((c,i)=>{
+        c.style.opacity='0';c.style.transform='translateY(32px)';
+        setTimeout(()=>{c.style.transition='opacity .6s ease, transform .6s cubic-bezier(.2,.8,.2,1)';c.style.opacity='1';c.style.transform='none';},i*140+100);
+      });
+      bnccObserver.unobserve(entry.target);
+    }
+  });
+},{threshold:0.15});
+const bnccSection = document.querySelector('.bncc-section');
+if(bnccSection) bnccObserver.observe(bnccSection);
+
+
+setTimeout(animateBars,400);
+document.querySelectorAll('.nav-links a').forEach(a=>a.addEventListener('click',()=>document.getElementById('navlinks').classList.remove('show')));
+</script>
+</body>
+</html>
